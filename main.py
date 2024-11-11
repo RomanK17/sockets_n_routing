@@ -1,10 +1,14 @@
 import socket
+from views import index, hello
+
+
+URLS = {"/":  index, "/hello" : hello}
 
 
 def generate_headers(method, url):
     if not method == "GET":
         return ("HTTP/1.1 405 Method not allowed\n\n", 405)
-    if url not in ("/", "/hello"):
+    if url not in URLS:
         return ("HTTP/1.1 404 Not found\n\n", 404)
     return ("HTTP/1.1 200 OK\n\n", 200)
 
@@ -14,19 +18,19 @@ def parse_request(request):
     return parsed[0], parsed[1]
 
 
-def generate_body(code):
+def generate_body(code, url):
     if code == 404:
         return "<h1>404</h1><p>Method not allowed</p>"
     if code == 405:
         return "<h1>405</h1><p>Not found</p>"
     if code == 200:
-        return "<h1>hello</h1>"
+        return URLS[url]()
 
 
 def generate_response(request):
     method, url = parse_request(request)
     headers, status_code = generate_headers(method, url)
-    body = generate_body(status_code)
+    body = generate_body(status_code, url)
     return (headers + body).encode()
 
 
